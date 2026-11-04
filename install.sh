@@ -133,8 +133,15 @@ if [[ -n "$lls" ]]; then ok "lua-language-server ($lls)"; else warn "$LLS_HINT";
 
 # ------------------------------------------------------------------ get the code
 
-here="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" 2>/dev/null && pwd || true)"
-if [[ -n "$here" && -f "$here/types/rex.lua" ]]; then
+# Running from a clone (./install.sh) → use it. Piped from curl → clone or
+# update our own copy. When piped, BASH_SOURCE is unset and $0 is "bash", so
+# only a real file on disk counts as "running from a clone".
+self="${BASH_SOURCE[0]:-}"
+here=""
+if [[ -n "$self" && -f "$self" ]]; then
+  here="$(cd "$(dirname "$self")" 2>/dev/null && pwd || true)"
+fi
+if [[ -n "$here" && -f "$here/install.sh" && -f "$here/types/rex.lua" ]]; then
   src="$here"
   ok "using $src"
 else
