@@ -4,24 +4,8 @@ Lua type definitions for [Rex](https://www.superlogical.com/rex)'s `rex` API, so
 treats `~/.config/rex/init.lua` like typed code: completion for every method and action name,
 Rex's own documentation on hover, jump to definition, and a diagnostic when a field is wrong.
 
-```
-rex.bind("ctrl+a>s", "pane.
-                     ┌──────────────────────────────────────────────┐
-                     │ "pane.split"            Split Pane           │
-                     │ "pane.split.auto"       Split Pane Best Fit  │
-                     │ "pane.focus"            Focus Pane           │
-                     │ "pane.zoom"             Zoom Pane            │
-                     │ "pane.send_key"         Send Key             │
-                     └──────────────────────────────────────────────┘
+![Completing an action name, its arguments, and hovering for Rex's own documentation](demo/bind.gif)
 
-local r = rex.block.call("com.superlogical.terminal", "process", {})
-r.foreground.
-             ┌───────────────────────────────────────────────────────┐
-             │ argv0?   string  The first argument as the process …  │
-             │ cwd?     string  The process's working directory …    │
-             │ name     string  The file name of the executable …    │
-             └───────────────────────────────────────────────────────┘
-```
 
 Half of it is hand-written from the [Lua API reference](https://www.superlogical.com/rex/docs/reference/lua-api.md).
 The other half is **generated from your own server** — `rex api call help.all` and
@@ -249,6 +233,15 @@ an overload in `rex.lua`.
 Set `LUA_LS=/path/to/lua-language-server` if it isn't on your `PATH` (the script also looks in
 Mason's directory).
 
+To re-record the demo at the top (needs [vhs](https://github.com/charmbracelet/vhs)):
+
+```sh
+vhs demo/bind.tape
+```
+
+It builds a throwaway Rex config with `demo/setup.sh` and drives your own Neovim, so the GIF
+shows lua-language-server actually answering.
+
 ## How it works
 
 | File | Role |
@@ -261,6 +254,7 @@ Mason's directory).
 | `check.sh` | The checks above |
 | `lua/rex-types/init.lua` | The Neovim plugin half: `setup()` registers `types/` with lua_ls |
 | `test/` | Fixtures: correct use, and mistakes that must be caught |
+| `demo/bind.tape` | The recording above, as a [vhs](https://github.com/charmbracelet/vhs) script — `vhs demo/bind.tape` re-records it |
 
 Both type files start with `---@meta`, so they only describe types — nothing in them runs, and Rex
 never loads them. Rex loads `init.lua` only.

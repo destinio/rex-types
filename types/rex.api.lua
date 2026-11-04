@@ -5,7 +5,7 @@
 --- again after a Rex upgrade. The hand-written half of the API is in rex.lua.
 ---
 --- Generated from rex 0.0.1793377904-ge6592f, API revision 8.
---- Action names from this server and 2 app client(s): ios Rex Dev, macos Rex Beta.
+--- Action names from this server and 2 app client(s): macos Rex Beta, macos Rex Beta.
 
 ---A server method for `rex.call`. `rex api list` prints them, and
 ---`rex api describe NAME` documents one.
@@ -105,8 +105,6 @@
 ---| "client.host.remove" # Remove Host…
 ---| "client.host.switch" # Switch Host
 ---| "client.key.forward" # Send Key to Server
----| "client.keyboard.hide" # Hide Keyboard
----| "client.keyboard.show" # Show Keyboard
 ---| "client.mode.enter" # Enter Mode
 ---| "client.mode.exit" # Exit Mode
 ---| "client.mode.exit_all" # Exit All Modes
