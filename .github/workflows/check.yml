@@ -1,0 +1,30 @@
+name: check
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install lua-language-server
+        run: |
+          set -euo pipefail
+          tag="$(curl -fsSL https://api.github.com/repos/LuaLS/lua-language-server/releases/latest | sed -n 's/.*"tag_name": *"\([^"]*\)".*/\1/p' | head -1)"
+          echo "lua-language-server $tag"
+          curl -fsSL -o lls.tar.gz \
+            "https://github.com/LuaLS/lua-language-server/releases/download/${tag}/lua-language-server-${tag}-linux-x64.tar.gz"
+          mkdir -p "$HOME/lls"
+          tar -xzf lls.tar.gz -C "$HOME/lls"
+          echo "LUA_LS=$HOME/lls/bin/lua-language-server" >> "$GITHUB_ENV"
+
+      # Rex isn't available here, so check.sh skips the generator cross-check and
+      # checks the committed definitions: the fixtures must stay clean and the
+      # mistakes in test/negative.lua must still be caught.
+      - name: Check the definitions
+        run: ./check.sh

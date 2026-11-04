@@ -5,7 +5,7 @@
 --- again after a Rex upgrade. The hand-written half of the API is in rex.lua.
 ---
 --- Generated from rex 0.0.1793377904-ge6592f, API revision 8.
---- Action names from this server and 3 app client(s): ios Rex Dev, macos Rex Beta, macos Rex Beta.
+--- Action names from this server and 2 app client(s): ios Rex Dev, macos Rex Beta.
 
 ---A server method for `rex.call`. `rex api list` prints them, and
 ---`rex api describe NAME` documents one.

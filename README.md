@@ -5,7 +5,7 @@ treats `~/.config/rex/init.lua` like typed code: completion for every method and
 Rex's own documentation on hover, jump to definition, and a diagnostic when a field is wrong.
 
 ```
-rex.bind("ctrl+a>|", "pane.
+rex.bind("ctrl+a>s", "pane.
                      ┌──────────────────────────────────────────────┐
                      │ "pane.split"            Split Pane           │
                      │ "pane.split.auto"       Split Pane Best Fit  │
@@ -15,7 +15,7 @@ rex.bind("ctrl+a>|", "pane.
                      └──────────────────────────────────────────────┘
 
 local r = rex.block.call("com.superlogical.terminal", "process", {})
-r.foreground.|
+r.foreground.
              ┌───────────────────────────────────────────────────────┐
              │ argv0?   string  The first argument as the process …  │
              │ cwd?     string  The process's working directory …    │
@@ -23,14 +23,49 @@ r.foreground.|
              └───────────────────────────────────────────────────────┘
 ```
 
-Works with any editor that uses [lua-language-server](https://luals.github.io): Neovim, VS Code,
-Zed, Helix, IntelliJ.
+Half of it is hand-written from the [Lua API reference](https://www.superlogical.com/rex/docs/reference/lua-api.md).
+The other half is **generated from your own server** — `rex api call help.all` and
+`rex actions --json` — so it describes the Rex you're running, not the Rex that was current when
+this repo was written.
+
+## Install
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/destinio/rex-types/main/install.sh | bash
+```
+
+That clones this repo to `~/.local/share/rex-types`, links it into your Rex config as `types/`,
+writes a `.luarc.json` if you don't have one, and regenerates the API half against your server.
+([Read the script](install.sh) first if you like.) Then open `~/.config/rex/init.lua` and type
+`rex.` — in Neovim, `:LspRestart` first if the file was already open.
+
+Run the same command again to update after a Rex upgrade.
+
+```sh
+./install.sh --check      # is this install healthy, and does it match my server?
+./install.sh --uninstall  # remove the link; your .luarc.json is left alone
+```
+
+`--check` reports the Rex version, where `types/` points, whether the generated half matches your
+server's API revision, whether `.luarc.json` sets Lua 5.1, whether lua-language-server is
+installed, and what it says about your config directory.
+
+By hand:
+
+```sh
+git clone https://github.com/destinio/rex-types && cd rex-types && ./install.sh
+```
+
+**Requirements.** bash, git, and [lua-language-server](https://luals.github.io) (tested on 3.14
+and 3.19). The `rex` command is needed only to regenerate — the committed `types/rex.api.lua`
+works on its own. macOS, Linux and FreeBSD; on Windows, clone the repo and use the
+`workspace.library` form below.
 
 ## What's covered
 
 | Surface | What you get |
 |---|---|
-| `rex.bind`, `rex.action`, `rex.exec`, `rex.layout`, timers, JSON, hosts | Hand-written from the [Lua API reference](https://www.superlogical.com/rex/docs/reference/lua-api.md), with a note on each function saying whether it works in `init.lua`, in `rex do` scripts, or both |
+| `rex.bind`, `rex.action`, `rex.exec`, `rex.layout`, timers, JSON, hosts | Hand-written, with a note on each function saying whether it works in `init.lua`, in `rex do` scripts, or both |
 | `rex.call` | One overload per server method — arguments and results typed, down to nested fields |
 | `rex.session.*` | Every session method, with its argument and result classes |
 | `rex.block.call` | Every block method's result; argument classes available by name |
@@ -52,29 +87,17 @@ local args = { direction = "left", amount = 5 }   -- completion and checking in 
 rex.bind("ctrl+a>H", "pane.resize", args)
 ```
 
-## Install
+## Editors
 
-```sh
-curl -fsSL https://raw.githubusercontent.com/destinio/rex-types/main/install.sh | bash
-```
+The installer's `.luarc.json` is all lua-language-server needs, so **Neovim, VS Code, Zed and
+Helix all work with no further setup** — they read `.luarc.json` from the directory they open.
+VS Code needs the [Lua extension](https://marketplace.visualstudio.com/items?itemName=sumneko.lua);
+Neovim needs lua_ls enabled (kickstart and LazyVim both do by default).
 
-That clones this repo to `~/.local/share/rex-types`, links it into your Rex config as `types/`,
-writes a `.luarc.json` if you don't have one, and regenerates the API half against your own
-server. ([Read the script](install.sh) first if you like.) Then open `~/.config/rex/init.lua`
-and type `rex.` — in nvim, `:LspRestart` first if it was already open.
+Two cases need a little more:
 
-Run the same command again to update after a Rex upgrade.
-
-Or by hand:
-
-```sh
-git clone https://github.com/destinio/rex-types && cd rex-types && ./install.sh
-```
-
-### Keeping the types outside your Rex config
-
-If you'd rather not link anything into `~/.config/rex`, point lua-language-server at the clone
-instead. In `~/.config/rex/.luarc.json`:
+**Rex scripts kept outside your Rex config** — point lua-language-server at the clone from
+whatever workspace they live in:
 
 ```json
 {
@@ -83,10 +106,11 @@ instead. In `~/.config/rex/.luarc.json`:
 }
 ```
 
-([examples/luarc.json](examples/luarc.json) is the full file.) The absolute path is per-machine,
-so if you share `.luarc.json` across machines, prefer the symlink the installer makes.
+([examples/luarc.json](examples/luarc.json) is the full file the installer writes.) The absolute
+path doesn't travel between machines, so inside your Rex config prefer the symlink.
 
-### Neovim with lazydev.nvim
+**Neovim with [lazydev.nvim](https://github.com/folke/lazydev.nvim)** — load the types in any Lua
+file that mentions `rex.`, no `.luarc.json` needed:
 
 ```lua
 {
@@ -100,47 +124,62 @@ so if you share `.luarc.json` across machines, prefer the symlink the installer 
 }
 ```
 
-That loads the types in any Lua file that mentions `rex.`, including scripts you keep outside
-your Rex config.
-
 ## Regenerating
 
 ```sh
 rex do ~/.local/share/rex-types/types/generate.lua
 ```
 
-`types/rex.api.lua` is generated from the server's own API description — `rex api call help.all`
-plus `rex actions --json` — so it matches the Rex you're running rather than the Rex that was
-current when this repo was written. Its header records the version and API revision it came from.
+The file's header records the Rex version, the API revision, and which clients it was built from.
+`install.sh --check` compares that revision with your running server and tells you when to re-run.
 
-Action names come from the server plus **every connected app client**, so open the apps whose
-actions you want (Mac, iOS) before regenerating. The committed copy was generated from the
-version named in the file's header.
+Action names come from the server **plus every connected app client**, so open the apps whose
+actions you want (Mac, iOS) before regenerating.
 
-The generator also prints `action_overloads_missing_from_rex_lua`: if a Rex upgrade adds an
-action that takes arguments, that's where it shows up, and the fix is one `---@overload` line
-in `types/rex.lua` next to the others. Pull requests welcome.
+The generator also prints `action_overloads_missing_from_rex_lua`: if a Rex upgrade adds an action
+that takes arguments, that's where it shows up, and the fix is one `---@overload` line in
+`types/rex.lua` next to the others.
+
+## Contributing
+
+```sh
+./check.sh              # what CI runs
+./check.sh --generate   # regenerate first, then check
+```
+
+`check.sh` checks the definitions four ways: the fixtures must stay clean with `types/` linked
+into the workspace, clean again with `types/` named in `workspace.library`, every mistake in
+`test/negative.lua` must still be reported, and every action that takes arguments must still have
+an overload in `rex.lua`.
+
+- `test/fixture.lua` — ordinary use of the config-file API. Zero diagnostics expected; anything
+  reported there is a bug in the definitions, not in the fixture.
+- `test/script.lua` — the same for the `rex do` API: events, timers, waiting, exec handles.
+- `test/negative.lua` — deliberate mistakes, each marked with the diagnostic it must produce.
+
+Set `LUA_LS=/path/to/lua-language-server` if it isn't on your `PATH` (the script also looks in
+Mason's directory).
 
 ## How it works
 
 | File | Role |
 |---|---|
 | `types/rex.lua` | Hand-written definitions, `---@meta`, from the Lua API reference |
-| `types/rex.api.lua` | Generated: 73 server methods, 41 session methods, every block method, every action name, 258 classes |
+| `types/rex.api.lua` | Generated: every server method, session method, block method and action name |
 | `types/generate.lua` | The generator, run with `rex do` — reads `help.all` and `rex actions --json` |
 | `examples/luarc.json` | The `.luarc.json` the installer writes |
-| `install.sh` | Installs, updates (`git pull` + regenerate), or uninstalls (`--uninstall`) |
+| `install.sh` | Install, update, `--check`, `--uninstall` |
+| `check.sh` | The checks above |
+| `test/` | Fixtures: correct use, and mistakes that must be caught |
 
-Both type files start with `---@meta`, so they only describe types — nothing in them runs, and
-Rex never loads them.
+Both type files start with `---@meta`, so they only describe types — nothing in them runs, and Rex
+never loads them. Rex loads `init.lua` only.
 
 ## Uninstall
 
 ```sh
 curl -fsSL https://raw.githubusercontent.com/destinio/rex-types/main/install.sh | bash -s -- --uninstall
 ```
-
-That removes the link and leaves your `.luarc.json` alone.
 
 ## License
 
