@@ -119,6 +119,10 @@ definitions. `require('rex-types').setup()` hands them to lua_ls for Lua buffers
 `rex.`, appending to whatever library your config already set. No `.luarc.json`, no symlink, and
 it covers Rex scripts anywhere on disk — not just `~/.config/rex`.
 
+It stays out of the way of the `.luarc.json` install: if the workspace already ships the
+definitions (`types/` linked into your Rex config), the plugin leaves that one alone rather than
+loading a second copy. So having both installed is fine.
+
 **[lazy.nvim](https://github.com/folke/lazy.nvim)**
 
 ```lua

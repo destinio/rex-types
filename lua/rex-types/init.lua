@@ -29,6 +29,26 @@ local function mentions_rex(buf)
   return false
 end
 
+---Does this workspace already ship the definitions? A Rex config with `types/`
+---linked into it does, and loading a second copy from the plugin would define
+---every class twice.
+---@param client vim.lsp.Client
+---@return boolean
+local function already_provided(client)
+  local root = client.root_dir
+  if root then
+    for _, candidate in ipairs { root .. '/types/rex.api.lua', root .. '/rex.api.lua' } do
+      if vim.uv.fs_stat(candidate) then return true end
+    end
+  end
+  local settings = client.config.settings or {}
+  local library = (settings.Lua and settings.Lua.workspace and settings.Lua.workspace.library) or {}
+  for _, dir in ipairs(library) do
+    if vim.uv.fs_stat(vim.fs.normalize(dir) .. '/rex.api.lua') then return true end
+  end
+  return false
+end
+
 ---Add `path` to a running lua_ls client's library, keeping what's already there.
 ---@param client vim.lsp.Client
 ---@param path string
@@ -48,14 +68,16 @@ end
 
 ---@class rex-types.Opts
 ---@field path? string Where the definitions live. Defaults to this plugin's own `types/`.
----@field enabled? fun(buf: integer, client: vim.lsp.Client): boolean Which buffers get them. Defaults to "the buffer mentions `rex.`".
+---@field enabled? fun(buf: integer, client: vim.lsp.Client): boolean Which buffers get them. Defaults to "the buffer mentions `rex.`, and the workspace doesn't already ship the definitions".
 
 ---Register the definitions with every lua_ls that attaches to a Rex Lua buffer.
 ---@param opts? rex-types.Opts
 function M.setup(opts)
   opts = opts or {}
   local path = opts.path or M.path()
-  local enabled = opts.enabled or function(buf) return mentions_rex(buf) end
+  local enabled = opts.enabled or function(buf, client)
+    return mentions_rex(buf) and not already_provided(client)
+  end
 
   local function try(client, buf)
     if client and client.name == 'lua_ls' and vim.bo[buf].filetype == 'lua' and enabled(buf, client) then
