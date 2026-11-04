@@ -59,7 +59,7 @@ git clone https://github.com/destinio/rex-types && cd rex-types && ./install.sh
 **Requirements.** bash, git, and [lua-language-server](https://luals.github.io) (tested on 3.14
 and 3.19). The `rex` command is needed only to regenerate — the committed `types/rex.api.lua`
 works on its own. macOS, Linux and FreeBSD; on Windows, clone the repo and use the
-`workspace.library` form below.
+`workspace.library` form below, or install it as a Neovim plugin.
 
 ## What's covered
 
@@ -109,20 +109,57 @@ whatever workspace they live in:
 ([examples/luarc.json](examples/luarc.json) is the full file the installer writes.) The absolute
 path doesn't travel between machines, so inside your Rex config prefer the symlink.
 
-**Neovim with [lazydev.nvim](https://github.com/folke/lazydev.nvim)** — load the types in any Lua
-file that mentions `rex.`, no `.luarc.json` needed:
+**Neovim, as a plugin** — see below. That also covers scripts outside your Rex config, with no
+`.luarc.json` at all.
+
+## Install as a Neovim plugin
+
+This repo is a Neovim plugin too, so your plugin manager can be the thing that installs the
+definitions. `setup()` hands them to lua_ls for Lua buffers that mention `rex.`, appending to
+whatever library your config already set — nothing else to configure, and it works for Rex
+scripts anywhere on disk, not just in `~/.config/rex`.
+
+With `vim.pack` (Neovim 0.12+):
+
+```lua
+vim.pack.add { 'https://github.com/destinio/rex-types' }
+require('rex-types').setup()
+```
+
+With [lazy.nvim](https://github.com/folke/lazy.nvim):
+
+```lua
+{ 'destinio/rex-types', ft = 'lua', config = true }
+```
+
+With [lazydev.nvim](https://github.com/folke/lazydev.nvim), skip `setup()` and let lazydev own it
+— the plugin-relative path means no absolute paths in your config:
 
 ```lua
 {
-  "folke/lazydev.nvim",
-  ft = "lua",
+  'folke/lazydev.nvim',
+  ft = 'lua',
+  dependencies = { 'destinio/rex-types' },
   opts = {
     library = {
-      { path = "~/.local/share/rex-types/types", words = { "rex%." } },
+      { path = 'rex-types/types', words = { 'rex%.' } },
     },
   },
 }
 ```
+
+Options, if the defaults don't suit:
+
+```lua
+require('rex-types').setup {
+  path = '/somewhere/else/types',                  -- default: this plugin's own types/
+  enabled = function(buf, client) return true end, -- default: the buffer mentions `rex.`
+}
+```
+
+Plugin mode leaves `runtime.version` to your own config — LuaJIT, which is 5.1-compatible, so
+Rex's Lua 5.1 is described correctly either way. Inside `~/.config/rex`, the installer's
+`.luarc.json` pins it exactly.
 
 ## Regenerating
 
@@ -170,6 +207,7 @@ Mason's directory).
 | `examples/luarc.json` | The `.luarc.json` the installer writes |
 | `install.sh` | Install, update, `--check`, `--uninstall` |
 | `check.sh` | The checks above |
+| `lua/rex-types/init.lua` | The Neovim plugin half: `setup()` registers `types/` with lua_ls |
 | `test/` | Fixtures: correct use, and mistakes that must be caught |
 
 Both type files start with `---@meta`, so they only describe types — nothing in them runs, and Rex

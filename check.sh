@@ -104,6 +104,20 @@ else
   printf '  %s—%s rex not on PATH, skipped the generator cross-check\n' "$dim" "$reset"
 fi
 
+# The Neovim half must load and find its own types/.
+if command -v nvim >/dev/null 2>&1; then
+  if nvim --headless --clean --cmd "set rtp+=$root" \
+      -c "lua local p = require('rex-types').path(); assert(vim.uv.fs_stat(p .. '/rex.lua'), p)" \
+      -c "qa!" >/dev/null 2>&1; then
+    ok "lua/rex-types loads and resolves types/"
+  else
+    fail "lua/rex-types didn't load, or couldn't find types/rex.lua"
+    status=1
+  fi
+else
+  printf '  %s—%s nvim not on PATH, skipped the plugin check\n' "$dim" "$reset"
+fi
+
 rm -rf "$ws1" "$ws2"
 printf '\n'
 if ((status == 0)); then printf '  %sAll checks passed.%s\n\n' "$bold" "$reset"; else printf '  %sFailed.%s\n\n' "$red" "$reset"; fi
