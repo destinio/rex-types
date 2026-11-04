@@ -1,0 +1,6 @@
+{
+  "runtime": { "version": "Lua 5.1" },
+  "workspace": { "library": [], "checkThirdParty": false },
+  "diagnostics": { "disable": ["duplicate-set-field"] },
+  "format": { "enable": false }
+}

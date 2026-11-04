@@ -1,0 +1,37 @@
+{
+  "$schema": "https://raw.githubusercontent.com/LuaLS/vscode-lua/master/setting/schema.json",
+  "runtime": {
+    "version": "Lua 5.1",
+    "pathStrict": true,
+    "path": [
+      "?.lua",
+      "?/init.lua"
+    ]
+  },
+  "workspace": {
+    "library": [],
+    "checkThirdParty": false,
+    "ignoreDir": [
+      ".git"
+    ]
+  },
+  "diagnostics": {
+    "globals": [],
+    "disable": [
+      "duplicate-set-field"
+    ]
+  },
+  "completion": {
+    "callSnippet": "Replace",
+    "keywordSnippet": "Replace",
+    "showWord": "Disable"
+  },
+  "hint": {
+    "enable": true,
+    "paramType": true,
+    "setType": true
+  },
+  "format": {
+    "enable": false
+  }
+}
