@@ -115,25 +115,72 @@ path doesn't travel between machines, so inside your Rex config prefer the symli
 ## Install as a Neovim plugin
 
 This repo is a Neovim plugin too, so your plugin manager can be the thing that installs the
-definitions. `setup()` hands them to lua_ls for Lua buffers that mention `rex.`, appending to
-whatever library your config already set — nothing else to configure, and it works for Rex
-scripts anywhere on disk, not just in `~/.config/rex`.
+definitions. `require('rex-types').setup()` hands them to lua_ls for Lua buffers that mention
+`rex.`, appending to whatever library your config already set. No `.luarc.json`, no symlink, and
+it covers Rex scripts anywhere on disk — not just `~/.config/rex`.
 
-With `vim.pack` (Neovim 0.12+):
+**[lazy.nvim](https://github.com/folke/lazy.nvim)**
+
+```lua
+{ 'destinio/rex-types', ft = 'lua', config = true }
+```
+
+**`vim.pack`** (built in, Neovim 0.12+)
 
 ```lua
 vim.pack.add { 'https://github.com/destinio/rex-types' }
 require('rex-types').setup()
 ```
 
-With [lazy.nvim](https://github.com/folke/lazy.nvim):
+**[mini.deps](https://github.com/echasnovski/mini.deps)**
 
 ```lua
-{ 'destinio/rex-types', ft = 'lua', config = true }
+MiniDeps.add('destinio/rex-types')
+MiniDeps.now(function() require('rex-types').setup() end)
 ```
 
-With [lazydev.nvim](https://github.com/folke/lazydev.nvim), skip `setup()` and let lazydev own it
-— the plugin-relative path means no absolute paths in your config:
+**[pckr.nvim](https://github.com/lewis6991/pckr.nvim)**
+
+```lua
+require('pckr').add {
+  { 'destinio/rex-types', config = function() require('rex-types').setup() end },
+}
+```
+
+**[paq-nvim](https://github.com/savq/paq-nvim)**
+
+```lua
+require('paq') { 'savq/paq-nvim', 'destinio/rex-types' }
+require('rex-types').setup()
+```
+
+**[rocks.nvim](https://github.com/nvim-neorocks/rocks.nvim)** (with `rocks-git.nvim`), in `rocks.toml`:
+
+```toml
+[plugins]
+"rex-types" = { git = "destinio/rex-types" }
+```
+
+Then `require('rex-types').setup()` wherever you keep plugin config.
+
+**[vim-plug](https://github.com/junegunn/vim-plug)**
+
+```vim
+Plug 'destinio/rex-types'
+" after plug#end():
+lua require('rex-types').setup()
+```
+
+**[packer.nvim](https://github.com/wbthomason/packer.nvim)** (archived upstream, still in use)
+
+```lua
+use { 'destinio/rex-types', config = function() require('rex-types').setup() end }
+```
+
+### With lazydev.nvim
+
+[lazydev.nvim](https://github.com/folke/lazydev.nvim) can own the loading instead — skip
+`setup()` and give it the plugin-relative path, so there are no absolute paths in your config:
 
 ```lua
 {
@@ -148,7 +195,7 @@ With [lazydev.nvim](https://github.com/folke/lazydev.nvim), skip `setup()` and l
 }
 ```
 
-Options, if the defaults don't suit:
+### Options
 
 ```lua
 require('rex-types').setup {
@@ -157,9 +204,10 @@ require('rex-types').setup {
 }
 ```
 
-Plugin mode leaves `runtime.version` to your own config — LuaJIT, which is 5.1-compatible, so
-Rex's Lua 5.1 is described correctly either way. Inside `~/.config/rex`, the installer's
-`.luarc.json` pins it exactly.
+The module name matches the repo name, so managers that derive it automatically (lazy.nvim's
+`config = true`) need no `main` field. Plugin mode leaves `runtime.version` to your own config —
+LuaJIT, which is 5.1-compatible, so Rex's Lua 5.1 is described correctly either way. Inside
+`~/.config/rex`, the installer's `.luarc.json` pins it exactly.
 
 ## Regenerating
 
